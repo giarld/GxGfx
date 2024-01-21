@@ -1,2 +1,2 @@
 # GxGfx
-Cross platform 3D graphics rendering library
+Cross-platform 3D graphics rendering library.
