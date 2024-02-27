@@ -30,6 +30,10 @@ namespace gfx
 
 void GVkSemaphore::create(VkDevice device)
 {
+    if (isCreated()) {
+        return;
+    }
+
     mDevice = device;
     VkSemaphoreCreateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -43,6 +47,11 @@ void GVkSemaphore::destroy()
         vkDestroySemaphore(mDevice, mHandle, nullptr);
     }
     mHandle = VK_NULL_HANDLE;
+}
+
+bool GVkSemaphore::isCreated() const
+{
+    return mHandle != VK_NULL_HANDLE;
 }
 
 GVkSemaphore::operator VkSemaphore()

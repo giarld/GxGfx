@@ -37,7 +37,7 @@ class GX_API GVkSampler
 CLASS_DEF(GVkSampler)
 
 public:
-    void create(GVkDevice *device);
+    void create(GVkDevice *device, bool toCreate = true);
 
     void destroy();
 
@@ -102,7 +102,7 @@ private:
     VkCompareOp mCompareOp = VK_COMPARE_OP_NEVER;
     float mMinLod = 0.0f;
     float mMaxLod = VK_LOD_CLAMP_NONE;
-    VkBorderColor mBorderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+    VkBorderColor mBorderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
     VkBool32 mUnnormalizedCoordinates = VK_FALSE;
     struct {
         float r;

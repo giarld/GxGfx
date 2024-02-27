@@ -29,13 +29,13 @@
 namespace gfx
 {
 
-void GVkSampler::create(GVkDevice *device)
+void GVkSampler::create(GVkDevice *device, bool toCreate)
 {
     mDevice = device;
 
-    mMaxAnisotropy = device->deviceFeatures().samplerAnisotropy ? device->deviceProperties().limits.maxSamplerAnisotropy : 1.0f;
-    mAnisotropyEnable = device->deviceFeatures().samplerAnisotropy;
-    reset();
+    if (toCreate) {
+        reset();
+    }
 }
 
 void GVkSampler::destroy()
@@ -189,7 +189,7 @@ void GVkSampler::reset()
     samplerCreateInfo.borderColor = mBorderColor;
     samplerCreateInfo.unnormalizedCoordinates = mUnnormalizedCoordinates;
 
-#if defined(VK_API_VERSION_1_2)
+#if defined(VK_API_VERSION_1_2) || defined(VK_API_VERSION_1_3)
     VkSamplerCustomBorderColorCreateInfoEXT borderColor;
     if (mAddressModeU == VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER
         || mAddressModeV == VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER
@@ -204,7 +204,7 @@ void GVkSampler::reset()
     } else {
 #endif
         samplerCreateInfo.pNext = nullptr;
-#if defined(VK_API_VERSION_1_2)
+#if defined(VK_API_VERSION_1_2) || defined(VK_API_VERSION_1_3)
     }
 #endif
 

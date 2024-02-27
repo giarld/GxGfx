@@ -75,7 +75,9 @@ namespace gfx
 namespace vk
 {
 
-#if defined(VK_API_VERSION_1_2)
+#if defined(VK_API_VERSION_1_3)
+#define USE_VK_API_VER VK_API_VERSION_1_3
+#elif defined(VK_API_VERSION_1_2)
 #define USE_VK_API_VER VK_API_VERSION_1_2
 #elif defined(VK_API_VERSION_1_1)
 #define USE_VK_API_VER VK_API_VERSION_1_1

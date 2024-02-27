@@ -1846,11 +1846,12 @@ bool FrameVk::reset(uint32_t width, uint32_t height, bool vSync, bool enforce)
     if (!enforce && !resize && vSync == this->mVSync) {
         return false;
     }
+
+    mContextT->waitIdle();
+
     mWidth = width;
     mHeight = height;
     mVSync = vSync;
-
-    mContextT->waitIdle();
 
     initSwapChain(nullptr);
 
@@ -1869,8 +1870,8 @@ bool FrameVk::beginFrame()
 
     if (mRenderTargetType == FrameTargetType::SwapChain) {
         VkResult result = mVkSwapChain->acquireNextImage(&mCurrentFrameIndex);
-        if ((result == VK_ERROR_OUT_OF_DATE_KHR) || (result == VK_SUBOPTIMAL_KHR)) {
-            Log("FrameVk::acquireNextImage result = %s", vks::tools::errorString(result).c_str());
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+            Log("FrameVk::acquireNextImage result: %s", vks::tools::errorString(result).c_str());
             return false;
         } else if (result != VK_SUCCESS) {
             VK_CHECK_RESULT(result);
@@ -2031,12 +2032,18 @@ bool FrameVk::initSwapChain(const SwapChainInfo *swapChainInfo)
                               width, height, mVSync);
             mVkSwapChain = swapChain;
 
-            if (mVkSwapChain->getImageAvailableSemaphore() != VK_NULL_HANDLE) {
-                mRenderSemaphore.create(vkContext->vkDevice());
-            }
+            mRenderSemaphore.create(vkContext->vkDevice());
             initFence(mVkSwapChain->bufferCount());
         } else {
             auto *swapChain = dynamic_cast<GVkSurfaceSwapChain *>(mVkSwapChain);
+#if defined(VK_USE_PLATFORM_MACOS_MVK) || defined(VK_USE_PLATFORM_IOS_MVK)
+            // Switching VSync with MoltenVK will result in a SUBOPTIMAL_KHR error when calling acquireNextImage,
+            // as it is not possible to create a Swapchain through oldSwapchain
+            swapChain->destroy();
+#endif
+            mRenderSemaphore.destroy();
+            mRenderSemaphore.create(vkContext->vkDevice());
+
             swapChain->create(vkContext->gvkDevice(),
                               mVkSurface,
                               width, height, mVSync);
@@ -3418,7 +3425,10 @@ bool SamplerVk::init(Context_T *context, const CreateSamplerInfo &createInfo)
 {
     mContextT = context;
 
+    mVkSampler.create(getGVkContext(context)->gvkDevice(), false);
+
     mVkSampler.beginResetSampler();
+
     mVkSampler.setSamplerFilter(toVkFilter(createInfo.magFilter), toVkFilter(createInfo.minFilter));
     mVkSampler.setSamplerAddressMode(
             toVkSamplerAddressMode(createInfo.addressModeU),
@@ -3436,8 +3446,6 @@ bool SamplerVk::init(Context_T *context, const CreateSamplerInfo &createInfo)
     mVkSampler.setSamplerMaxAnisotropy((float)(1u << createInfo.anisotropyLog2));
 
     mVkSampler.endResetSampler();
-
-    mVkSampler.create(getGVkContext(context)->gvkDevice());
 
     return true;
 }

@@ -43,6 +43,8 @@ public:
     void destroy();
 
 public:
+    bool isCreated() const;
+
     operator VkSemaphore();
 
     VkSemaphore vkSemaphore();
